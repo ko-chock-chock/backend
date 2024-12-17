@@ -2,8 +2,8 @@
 name: Feature request
 about: 개발할 기능에 대해 작성해주세요.
 title: 기능 이름
-labels: documentation, good first issue, wontfix
-assignees: 630yjl, BugEliminator, kimsudang, suef606
+labels: ''
+assignees: ''
 
 ---
 

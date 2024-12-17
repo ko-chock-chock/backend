@@ -3,7 +3,7 @@ name: Bug report
 about: 버그 관련 이슈를 작성해주세요.
 title: "[Bug] 버그 한 줄 요약 #이슈번호"
 labels: bug
-assignees: 630yjl, BugEliminator, kimsudang, suef606
+assignees: ''
 
 ---
 
