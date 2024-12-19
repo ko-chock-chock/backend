@@ -1,5 +1,5 @@
 # Node.js 경량 Alpine 버전 사용
-FROM node:20-alpine
+FROM node:22-alpine
 
 # 작업 디렉토리 설정
 WORKDIR /usr/src/app
