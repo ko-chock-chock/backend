@@ -1,0 +1,76 @@
+services:
+  app:
+    image: kimsudang/nestjs-app:latest
+    ports:
+      - '8080:8080'
+    command: ['npm', 'run', 'start']
+    environment:
+      PORT: 8080
+      MONGO_URI: mongodb://mongo:27017/myapp_db
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    volumes:
+      - mysql-data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: myapp_db
+      MYSQL_USER: myapp_user
+      MYSQL_PASSWORD: strongpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+      LC_ALL: C.UTF-8
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - '6379:6379'
+    command: redis-server --requirepass strongpassword --port 6379 --appendonly yes
+    labels:
+      - 'name=redis'
+      - 'mode=standalone'
+    volumes:
+      - redis-data:/data
+    restart: always
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', 'strongpassword', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: myapp_db
+      MONGO_INITDB_ROOT_USERNAME: myapp_user
+      MONGO_INITDB_ROOT_PASSWORD: strongpassword
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+    healthcheck:
+      test: ['CMD', 'mongo', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
+  redis-data:
+  mongo-data:
