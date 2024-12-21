@@ -8,13 +8,13 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # 의존성 설치
-RUN yarn install
+RUN npm install
 
 # 소스 코드 복사
 COPY . .
 
 # NestJS 애플리케이션 빌드 (소스 코드 -> dist 폴더)
-RUN yarn build
+RUN npm run build
 
 # 컨테이너에 환경변수 포트 노출
 EXPOSE 8080
