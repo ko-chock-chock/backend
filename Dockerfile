@@ -17,9 +17,7 @@ COPY . .
 RUN yarn build
 
 # 컨테이너에 환경변수 포트 노출
-EXPOSE ${PORT}
+EXPOSE 8080
 
 # 애플리케이션 실행
 CMD ["node", "dist/main"]
-
-EXPOSE 8080
