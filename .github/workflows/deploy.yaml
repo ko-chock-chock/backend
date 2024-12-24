@@ -61,7 +61,7 @@ jobs:
             echo "=== 최신 Docker 이미지 Pull ==="
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/nestjs-app:latest
             echo "=== Docker Compose 컨테이너 실행 ==="
-            sudo docker-compose up -d --remove-orphans
+            docker-compose --env-file /home/ubuntu/.env up -d --remove-orphans
             echo "=== 사용하지 않는 Docker 이미지 정리 ==="
             docker image prune —f
             echo "=== Docker 컨테이너 상태 ==="
