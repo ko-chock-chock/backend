@@ -58,21 +58,21 @@ jobs:
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/nestjs-app:latest
 
             echo "=== 환경변수 기반 docker-compose 실행 ==="
-              export PORT=${{ secrets.PORT }}
-              export MYSQL_HOST=${{ secrets.MYSQL_HOST }}
-              export MYSQL_PORT=${{ secrets.MYSQL_PORT }}
-              export MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
-              export MYSQL_USER=${{ secrets.MYSQL_USER }}
-              export MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-              export MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
-              export MONGO_HOST=${{ secrets.MONGO_HOST }}
-              export MONGO_PORT=${{ secrets.MONGO_PORT }}
-              export MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
-              export MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
-              export MONGO_INITDB_DATABASE=${{ secrets.MONGO_INITDB_DATABASE }}
-              export REDIS_HOST=${{ secrets.REDIS_HOST }}
-              export REDIS_PORT=${{ secrets.REDIS_PORT }}
-              export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            export PORT=${{ secrets.PORT }}
+            export MYSQL_HOST=${{ secrets.MYSQL_HOST }}
+            export MYSQL_PORT=${{ secrets.MYSQL_PORT }}
+            export MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+            export MYSQL_USER=${{ secrets.MYSQL_USER }}
+            export MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+            export MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+            export MONGO_HOST=${{ secrets.MONGO_HOST }}
+            export MONGO_PORT=${{ secrets.MONGO_PORT }}
+            export MONGO_INITDB_ROOT_USERNAME=${{ secrets.MONGO_INITDB_ROOT_USERNAME }}
+            export MONGO_INITDB_ROOT_PASSWORD=${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+            export MONGO_INITDB_DATABASE=${{ secrets.MONGO_INITDB_DATABASE }}
+            export REDIS_HOST=${{ secrets.REDIS_HOST }}
+            export REDIS_PORT=${{ secrets.REDIS_PORT }}
+            export REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
 
             sudo docker-compose down
             sudo docker-compose up -d --remove-orphans
