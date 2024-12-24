@@ -56,13 +56,16 @@ jobs:
           script: |
             cd /home/ubuntu 
             echo "${{ secrets.ALL_ENV_VARS }}" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' > /home/ubuntu/.env
+            echo "=== .env 파일 내용 확인 ==="
+            cat /home/ubuntu/.env || echo "Failed to create .env file"
+
             echo "=== 기존 Docker Compose 컨테이너 종료 ==="
-            docker-compose --env-file .env down
+            docker-compose --env-file /home/ubuntu/.env down
             echo "=== 최신 Docker 이미지 Pull ==="
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/nestjs-app:latest
             echo "=== Docker Compose 컨테이너 실행 ==="
             docker-compose --env-file /home/ubuntu/.env up -d --remove-orphans
             echo "=== 사용하지 않는 Docker 이미지 정리 ==="
-            docker image prune —f
+            docker image prune -f
             echo "=== Docker 컨테이너 상태 ==="
             sudo docker-compose ps
