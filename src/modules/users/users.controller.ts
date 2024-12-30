@@ -4,7 +4,7 @@ import { UserService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 
 @ApiTags('User')
-@Controller('api/v1')
+@Controller('api/v1/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 

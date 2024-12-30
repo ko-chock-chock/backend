@@ -3,27 +3,26 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { AuthModule } from './modules/auth/auth.module';
+import { RedisModule } from './common/redis/redis.module';
 import { UserModule } from './modules/users/users.module';
-import { User } from './modules/users/entities/user.entity';
-import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    UserModule,
+    AuthModule,
+    RedisModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: 'localhost',
+      host: 'mysql_container',
       port: 3306,
-      username: process.env.MYSQL_USER || 'root',
-      password: process.env.MYSQL_PASSWORD || '1234',
+      username: 'root',
+      password: process.env.MYSQL_ROOT_PASSWORD,
       database: process.env.MYSQL_DATABASE,
-      entities: [User],
-      synchronize: true, // 개발 환경에서만 true
-      logging: true, // SQL 실행 로그 출력
+      autoLoadEntities: true,
+      synchronize: true,
     }),
-    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],
