@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('user') // TypeORM에서 해당 클래스가 데이터베이스 테이블과 매핑됨
+@Entity('users') // TypeORM에서 해당 클래스가 데이터베이스 테이블과 매핑됨
 export class User {
   @PrimaryGeneratedColumn('uuid')
   user_id: string; // UUID를 사용하여 고유 ID 자동 생성
