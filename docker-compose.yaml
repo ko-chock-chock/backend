@@ -1,6 +1,6 @@
 services:
   app:
-    image: kimsudang/nest-js-app:latest
+    image: kimsudang/nestjs-app:latest
     container_name: app_container
     ports:
       - '4000:8080'
