@@ -1,22 +1,25 @@
-# Node.js 경량 Alpine 버전 사용
-FROM node:20-alpine
+# 1. Node.js 기반 이미지 설정 (NestJS 실행 환경)
+FROM node:20
 
-# 작업 디렉토리 설정
-WORKDIR /usr/src/app
+# 2. 작업 디렉토리 설정
+WORKDIR /usr/src/app/
 
-# package.json 복사
+# 3. 의존성 파일(package.json 및 package-lock.json) 복사
 COPY package*.json ./
 
+# 4. npm 패키지 설치
 RUN npm install
 
-# 소스 코드 복사
+# 5. 소스 코드 복사
+# 코드가 하나라도 변경되면 캐싱 무력화
+# COPY 바뀔 확률이 낮은 파일들만 
 COPY . .
 
-# NestJS 애플리케이션 빌드
+# 6. NestJS 애플리케이션 빌드 (TypeScript → JavaScript)
 RUN npm run build
 
-# 컨테이너에 환경변수 포트 노출
-EXPOSE 8080
-
-# 애플리케이션 실행
+# 7. 실행 명령어 설정
 CMD ["node", "dist/main"]
+
+# 8. 애플리케이션 실행에 사용할 포트 노출
+EXPOSE 8080
