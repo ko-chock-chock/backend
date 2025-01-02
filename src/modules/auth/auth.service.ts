@@ -16,7 +16,7 @@ export class AuthService {
   /**
    * 로그인 처리
    * @param loginDto 사용자 로그인 정보 (이메일, 비밀번호)
-   * @returns Access Token
+   * @returns Access Token과 Refresh Token
    */
   async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
     const { mail, password } = loginDto;
@@ -54,9 +54,9 @@ export class AuthService {
   /**
    * Refresh Token 검증 및 새로운 Access Token 발급
    * @param refreshToken 클라이언트에서 전달받은 Refresh Token
-   * @returns 새로운 Access Token
+   * @returns 새로운 Access Token과 Refresh Token
    */
-  async refresh(refreshToken: string): Promise<string> {
+  async refresh(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const decoded = this.jwtService.verify(refreshToken);
       const redisRefreshKey = `refresh_token:${decoded.user_id}`;
@@ -66,17 +66,23 @@ export class AuthService {
         throw new UnauthorizedException('유효하지 않은 Refresh Token입니다.');
       }
 
-      // 새로운 Access Token 발급
+      // 새로운 토큰 생성
       const newAccessToken = this.jwtService.sign(
         { user_id: decoded.user_id, mail: decoded.mail },
         { expiresIn: process.env.JWT_EXPIRES_IN || '15m' },
       );
+      const newRefreshToken = this.jwtService.sign(
+        { user_id: decoded.user_id, mail: decoded.mail },
+        { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' },
+      );
 
-      // Redis에 새로운 Access Token 저장
-      const redisAccessKey = `access_token:${decoded.user_id}`;
+      // Redis에 새로운 토큰 저장
+      const redisAccessKey = `auth:access_token:${decoded.user_id}`;
       await this.redisService.set(redisAccessKey, newAccessToken, 900); // 15분
 
-      return newAccessToken;
+      await this.redisService.set(redisRefreshKey, newRefreshToken, 604800); // 7일
+
+      return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch (error) {
       throw new UnauthorizedException('Refresh Token 검증에 실패했습니다.');
     }
