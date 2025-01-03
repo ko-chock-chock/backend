@@ -11,7 +11,7 @@ import { UserModule } from '../users/users.module';
     UserModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your-secret-key', // 환경변수로 관리
-      signOptions: { expiresIn: '1h' }, // 1시간 만료
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN }, // 1시간 만료
     }),
   ],
   controllers: [AuthController],

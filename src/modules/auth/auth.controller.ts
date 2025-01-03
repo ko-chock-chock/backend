@@ -2,11 +2,13 @@ import { Controller, Post, Body, HttpException, HttpStatus, Res, Req } from '@ne
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/create-login.dto';
 import { Response, Request } from 'express';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     try {

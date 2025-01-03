@@ -2,6 +2,7 @@ import { Controller, Post, Body, Delete, Param, HttpException, HttpStatus } from
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
 import { UserService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Public } from 'src/common/decorators/public.decorator';
 
 @ApiTags('User')
 @Controller('api/v1/user')
@@ -12,6 +13,7 @@ export class UserController {
   @ApiResponse({ status: 201, description: '회원가입이 성공적으로 완료되었습니다.' })
   @ApiResponse({ status: 400, description: '잘못된 요청입니다.' })
   @ApiBody({ type: CreateUserDto })
+  @Public()
   @Post('signup')
   async createUser(@Body() createUserDto: CreateUserDto) {
     try {
