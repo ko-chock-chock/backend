@@ -3,7 +3,9 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/create-login.dto';
 import { Response, Request } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -42,6 +44,7 @@ export class AuthController {
   }
 
   @Post('refresh')
+  @ApiBearerAuth('access-token') // Bearer 인증 추가
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     try {
       const oldRefreshToken = req.cookies['refreshToken'];

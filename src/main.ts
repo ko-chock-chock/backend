@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,6 +15,25 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더
   });
   app.useGlobalPipes(new ValidationPipe());
+
+  // Swagger 설정
+  const config = new DocumentBuilder()
+    .setTitle('API Documentation') // 제목
+    .setDescription('API endpoints and documentation') // 설명
+    .setVersion('1.0') // 버전
+    .addBearerAuth(
+      // Bearer Token 추가
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access-token', // 이름 설정
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document);
 
   // 라우트 디버깅 활성화
   // const server = app.getHttpAdapter();

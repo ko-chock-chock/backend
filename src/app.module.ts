@@ -2,14 +2,15 @@ import { Module } from '@nestjs/common';
 
 import { AppController } from './app.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppService } from './app.service';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { RedisModule } from './common/redis/redis.module';
 import { UserModule } from './modules/users/users.module';
-import { BoardsModule } from './modules/boards/boards.module';
 import { JwtService } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { BoardsModule } from './modules/boards/boards.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
   ],
   controllers: [AppController],
   providers: [
+    AppService,
     JwtService, // JWT 서비스 제공
     {
       provide: APP_GUARD, // 글로벌 가드로 JwtAuthGuard 설정
