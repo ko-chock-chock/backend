@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('users') // TypeORM에서 해당 클래스가 데이터베이스 테이블과 매핑됨
@@ -9,6 +10,7 @@ export class User {
   mail: string; // 이메일은 고유 값이며, 필수 입력
 
   @Column({ type: 'varchar', length: 255, nullable: false })
+  @Exclude() // 비밀번호 데이터 제외
   password: string; // 비밀번호는 필수 입력
 
   @Column({ type: 'varchar', length: 50, unique: true, nullable: false })
