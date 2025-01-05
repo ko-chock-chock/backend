@@ -99,11 +99,29 @@ export class BoardsService {
     const take = 10; // 한 페이지당 10개 게시글
     const skip = (page - 1) * take; // 건너뛸 게시글 수 계산
 
-    const [data, total] = await this.boardRepository.findAndCount({
-      skip,
-      take,
-      order: { created_date: 'DESC' }, // 최신순 정렬
-    });
+    // 게시글과 이미지 관계를 포함해 조회
+    const [data, total] = await this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoinAndSelect(
+        'board.images',
+        'image',
+        'image.is_thumbnail = true', // 썸네일만 조인
+      )
+      .select([
+        'board.board_id',
+        'board.title',
+        'board.contents',
+        'board.price',
+        'board.location',
+        'board.status',
+        'board.created_date',
+        'board.updated_date',
+        'image.image_url', // 썸네일 이미지 URL만 선택
+      ])
+      .skip(skip)
+      .take(take)
+      .orderBy('board.created_date', 'DESC') // 최신순 정렬
+      .getManyAndCount();
 
     return { data, total }; // 게시글 데이터와 전체 개수 반환
   }

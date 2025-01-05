@@ -1,44 +1,46 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import * as AWS from 'aws-sdk';
+import { S3ConfigService } from '../../config/s3.config';
 import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class S3Service {
   private readonly s3: AWS.S3;
-  private readonly bucketName = process.env.AWS_S3_BUCKET_NAME; // 환경 변수에서 버킷 이름 읽기
+  private readonly bucketName: string;
 
-  constructor() {
-    this.s3 = new AWS.S3({
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID, // 환경 변수에서 Access Key 읽기
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // 환경 변수에서 Secret Key 읽기
-      region: process.env.AWS_REGION, // 환경 변수에서 AWS 리전 읽기
-    });
+  constructor(private readonly s3ConfigService: S3ConfigService) {
+    this.s3 = this.s3ConfigService.getS3Instance();
+    this.bucketName = this.s3ConfigService.getBucketName();
   }
 
-  // 파일 업로드 처리
   async uploadFiles(files: Express.Multer.File[]): Promise<string[]> {
     const uploadPromises = files.map((file) => this.uploadFile(file));
     return await Promise.all(uploadPromises);
   }
 
-  // 개별 파일 업로드
   async uploadFile(file: Express.Multer.File): Promise<string> {
     const key = `${uuid()}-${file.originalname}`; // 고유한 파일 이름 생성
+
+    console.log('S3 Bucket Name:', this.bucketName);
+    console.log('Uploading file to S3:', file.originalname, file.buffer); // 디버깅 로그
+
+    if (!file.buffer) {
+      throw new Error('File buffer is undefined.');
+    }
 
     try {
       const result = await this.s3
         .upload({
           Bucket: this.bucketName,
           Key: key,
-          Body: file.buffer, // 파일 데이터를 읽음
+          Body: file.buffer, // 이 부분 확인
           ContentType: file.mimetype, // 파일 MIME 타입 설정
         })
         .promise();
 
-      return result.Location; // 업로드된 파일의 URL 반환
+      return result.Location;
     } catch (error) {
-      console.error('S3 파일 업로드 오류:', error);
-      throw new InternalServerErrorException('파일 업로드에 실패했습니다.');
+      console.error('S3 업로드 오류:', error.message);
+      throw new InternalServerErrorException('S3 업로드 실패');
     }
   }
 }

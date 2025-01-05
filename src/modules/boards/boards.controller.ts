@@ -11,6 +11,8 @@ import {
   UseInterceptors,
   UploadedFiles,
   Req,
+  BadRequestException,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -51,6 +53,21 @@ export class BoardsController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() request: Request,
   ) {
+    // 디버깅 로그 추가
+    console.log('Received Files:', files);
+
+    if (!files || files.length === 0) {
+      throw new BadRequestException('업로드된 파일이 없습니다.');
+    }
+
+    files.forEach((file, index) => {
+      if (!file.buffer) {
+        console.error(`File #${index + 1} is missing buffer data`);
+        throw new BadRequestException(`파일 데이터가 유효하지 않습니다. (파일 #${index + 1})`);
+      }
+      console.log(`File #${index + 1} - Buffer:`, file.buffer);
+    });
+
     const newBoard = await this.boardsService.createBoard(createBoardDto, files, request);
     console.log('Response Data:', newBoard);
 
@@ -72,6 +89,7 @@ export class BoardsController {
             contents: '게시글 내용',
             price: 100000,
             location: '서울특별시 강남구',
+            status: '구인중',
             images: [{ image_id: 1, image_url: 'https://example.com/image1.jpg', is_thumbnail: true }],
           },
         ],
@@ -79,6 +97,7 @@ export class BoardsController {
     },
   })
   @Get()
+  @UseInterceptors(ClassSerializerInterceptor) // class-transformer 적용
   async getAllBoards(@Query('page') page: number = 1) {
     const result = await this.boardsService.getAllBoards(page);
     return { message: '게시글 목록 조회 성공', data: result };
@@ -98,6 +117,7 @@ export class BoardsController {
           contents: '게시글 내용',
           price: 100000,
           location: '서울특별시 강남구',
+          status: '구인중',
           images: [
             {
               image_id: 1,
@@ -130,7 +150,7 @@ export class BoardsController {
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':boardId/edit')
-  async updateBoard(@Param('boardId') board_id: number, @Body() updateBoardDto: UpdateBoardDto) {
+  async updateBoard(@Param('boardId') board_id: number, @Body() updateBoardDto: Partial<UpdateBoardDto>) {
     const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto);
     return { message: '게시글이 수정되었습니다.', data: updatedBoard };
   }

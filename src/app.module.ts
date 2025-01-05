@@ -12,6 +12,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { BoardsModule } from './modules/boards/boards.module';
 import { ConfigModule } from '@nestjs/config';
+import { S3Module } from './common/s3/s3.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ConfigModule } from '@nestjs/config';
       autoLoadEntities: true,
       synchronize: true,
     }),
+    S3Module,
   ],
   controllers: [AppController],
   providers: [
