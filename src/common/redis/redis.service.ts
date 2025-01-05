@@ -14,7 +14,10 @@ export class RedisService {
   }
 
   async set(key: string, value: string, expireSeconds?: number): Promise<void> {
+    console.log('Redis Set Key:', key);
+    console.log('Redis Set Value:', value);
     if (expireSeconds) {
+      console.log('Redis Expiry Time:', expireSeconds);
       await this.redis.set(key, value, 'EX', expireSeconds);
     } else {
       await this.redis.set(key, value);
@@ -22,10 +25,9 @@ export class RedisService {
   }
 
   async get(key: string): Promise<string | null> {
-    return await this.redis.get(key);
-  }
-
-  async delete(key: string): Promise<void> {
-    await this.redis.del(key);
+    console.log('Redis Get Key:', key);
+    const value = await this.redis.get(key);
+    console.log('Redis Get Value:', value);
+    return value;
   }
 }

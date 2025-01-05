@@ -11,9 +11,14 @@ import { JwtService } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { BoardsModule } from './modules/boards/boards.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // 전역 사용 가능
+      envFilePath: '.env', // .env 파일 경로
+    }),
     UserModule,
     AuthModule,
     BoardsModule,

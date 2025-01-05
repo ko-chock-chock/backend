@@ -64,6 +64,8 @@ export class AuthController {
         // TODO: 추후 도메인 설정해서 로컬/서버 환경 분리해주기
       });
 
+      console.log('Refresh Token in Cookie:', req.cookies['refreshToken']);
+
       return {
         status: 200,
         message: '새로운 Access Token과 Refresh Token이 발급되었습니다.',
