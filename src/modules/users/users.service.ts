@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcryptjs';
 import * as fs from 'fs';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,14 @@ export class UserService {
 
   async findUserByEmail(mail: string): Promise<User | null> {
     return await this.userRepository.findOne({ where: { mail } });
+  }
+
+  async findUserById(user_id: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { user_id } });
+    if (!user) {
+      throw new NotFoundException('해당 회원 정보를 찾을 수 없습니다.');
+    }
+    return user;
   }
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
@@ -48,6 +57,31 @@ export class UserService {
     });
 
     return await this.userRepository.save(newUser);
+  }
+
+  async updateUser(user_id: string, updateUserDto: UpdateUserDto & { currentPassword?: string }): Promise<User> {
+    const user = await this.findUserById(user_id);
+
+    // 비밀번호 변경 요청 처리
+    if (updateUserDto.password) {
+      if (!updateUserDto.currentPassword) {
+        throw new BadRequestException('현재 비밀번호를 입력해야 합니다.');
+      }
+
+      // 현재 비밀번호 확인
+      const isPasswordMatch = await bcrypt.compare(updateUserDto.currentPassword, user.password);
+      if (!isPasswordMatch) {
+        throw new BadRequestException('현재 비밀번호가 일치하지 않습니다.');
+      }
+
+      // 새로운 비밀번호 해싱
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 12);
+    }
+
+    // 업데이트된 데이터를 병합
+    const updatedUser = Object.assign(user, updateUserDto);
+
+    return this.userRepository.save(updatedUser);
   }
 
   async deleteUser(user_id: string): Promise<void> {
