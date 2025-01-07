@@ -86,4 +86,37 @@ export class AuthService {
       throw new UnauthorizedException('Refresh Token 검증에 실패했습니다.');
     }
   }
+
+  /**
+   * 로그아웃 로직
+   * @param refreshToken 클라이언트에서 전달받은 Refresh Token
+   * @returns 새로운 Access Token과 Refresh Token
+   */
+  async logout(accessToken: string, userId: string): Promise<void> {
+    // Access Token 무효화
+    const accessTokenKey = `access_token:${userId}`;
+    const accessResult = await this.redisService.del(accessTokenKey);
+    if (accessResult === 0) {
+      throw new UnauthorizedException('이미 무효화된 Access Token입니다.');
+    }
+
+    // Refresh Token 삭제
+    const refreshTokenKey = `refresh_token:${userId}`;
+    const refreshResult = await this.redisService.del(refreshTokenKey);
+    if (refreshResult === 0) {
+      console.warn('이미 삭제된 Refresh Token이거나 존재하지 않습니다.');
+    }
+
+    console.log(`로그아웃 처리 완료 - User ID: ${userId}`);
+  }
+
+  // Access Token에서 User ID 추출
+  async getUserIdFromAccessToken(token: string): Promise<string> {
+    try {
+      const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
+      return payload.user_id;
+    } catch (error) {
+      throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
+    }
+  }
 }
