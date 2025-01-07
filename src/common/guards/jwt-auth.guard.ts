@@ -1,20 +1,28 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
+    private readonly redisService: RedisService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // @Public() 데코레이터가 붙은 핸들러인지 확인
     const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
     if (isPublic) {
-      return true; // 보호 제외
+      return true;
     }
 
     const request = context.switchToHttp().getRequest<Request>();
@@ -25,20 +33,41 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-      request.user = payload; // 사용자 정보 추가
+      const payload = this.jwtService.verify(token, { secret: 'ko_chock_chock_jwt' });
+      console.log('Decoded JWT Payload:', payload);
+
+      const redisKey = `access_token:${payload.user_id}`;
+      const storedToken = await this.redisService.get(redisKey);
+
+      console.log('Redis Key:', redisKey);
+      console.log('Stored Token:', storedToken);
+
+      if (!storedToken || storedToken !== token) {
+        throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
+      }
+
+      request.user = payload;
     } catch (error) {
+      console.error('JWT Verification or Redis Error:', error.message);
       throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
     }
 
+    console.log('JWT Auth Guard: Authentication Successful');
     return true;
   }
 
   private extractTokenFromHeader(request: Request): string | null {
-    const authHeader = request.headers['authorization'];
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      return authHeader.split(' ')[1];
+    const authHeader = request.headers.authorization;
+
+    console.log('Authorization Header:', authHeader);
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('Invalid Authorization Header:', authHeader);
+      throw new HttpException('Access Token이 제공되지 않았습니다.', HttpStatus.UNAUTHORIZED);
     }
-    return null;
+
+    const token = authHeader.replace('Bearer ', '').trim();
+    console.log('Extracted Token:', token);
+    return token;
   }
 }
