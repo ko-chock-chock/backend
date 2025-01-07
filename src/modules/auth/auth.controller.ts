@@ -1,9 +1,9 @@
-import { Controller, Post, Body, HttpException, HttpStatus, Res, Req } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, Res, Req, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/create-login.dto';
 import { Response, Request } from 'express';
 import { Public } from 'src/common/decorators/public.decorator';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('auth')
 @Controller('api/v1/auth')
@@ -43,6 +43,7 @@ export class AuthController {
     }
   }
 
+  // refreshToken으로 accessToken 재발급
   @Post('refresh')
   @ApiBearerAuth('access-token') // Bearer 인증 추가
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -81,5 +82,33 @@ export class AuthController {
         HttpStatus.UNAUTHORIZED,
       );
     }
+  }
+
+  // 로그아웃
+  @ApiOperation({ summary: '로그아웃', description: 'Access Token 및 Refresh Token을 무효화합니다.' })
+  @ApiResponse({
+    status: 200,
+    description: '로그아웃 성공',
+    schema: {
+      example: { message: '로그아웃이 성공적으로 처리되었습니다.' },
+    },
+  })
+  @Post('logout')
+  @ApiBearerAuth('access-token') // Bearer 인증 추가
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw new UnauthorizedException('Access Token이 필요합니다.');
+    }
+
+    const accessToken = authHeader.replace('Bearer ', '').trim();
+    const userId = await this.authService.getUserIdFromAccessToken(accessToken);
+
+    // Access Token 및 Refresh Token 무효화
+    await this.authService.logout(accessToken, userId);
+
+    // Refresh Token 삭제를 위해 클라이언트 쿠키 초기화
+    res.clearCookie('refresh_token', { httpOnly: true, secure: true });
+    res.status(200).json({ message: '로그아웃이 성공적으로 처리되었습니다.' });
   }
 }

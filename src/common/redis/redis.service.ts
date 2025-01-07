@@ -30,4 +30,9 @@ export class RedisService {
     console.log('Redis Get Value:', value);
     return value;
   }
+
+  // Redis의 `del` 메서드 추가
+  async del(key: string): Promise<number> {
+    return await this.redis.del(key);
+  }
 }
