@@ -14,7 +14,7 @@ export class CreateBoardDto {
   @ApiProperty({ description: '위치 정보', example: '서울특별시 강남구' })
   location: string;
 
-  @ApiProperty({ description: '구인 상태', example: true })
+  @ApiProperty({ description: '구인 상태 (구인중 또는 구인완료)', example: '구인중' })
   @IsIn(['구인중', '구인완료'], { message: 'status는 구인중 또는 구인완료만 가능합니다.' })
   status: string;
 
