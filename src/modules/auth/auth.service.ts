@@ -33,7 +33,7 @@ export class AuthService {
 
     const payload = { user_id: user.user_id, mail: user.mail };
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: process.env.JWT_EXPIRES_IN || '15m',
+      expiresIn: process.env.JWT_EXPIRES_IN || '60m',
     });
     const refreshToken = this.jwtService.sign(payload, {
       expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
@@ -41,7 +41,7 @@ export class AuthService {
 
     const redisAccessKey = `access_token:${user.user_id}`;
     const redisRefreshKey = `refresh_token:${user.user_id}`;
-    await this.redisService.set(redisAccessKey, accessToken, 900);
+    await this.redisService.set(redisAccessKey, accessToken, 3600);
     await this.redisService.set(redisRefreshKey, refreshToken, 604800);
 
     console.log('Redis Key (Access):', redisAccessKey);
@@ -68,7 +68,7 @@ export class AuthService {
       // 새로운 토큰 생성
       const newAccessToken = this.jwtService.sign(
         { user_id: decoded.user_id, mail: decoded.mail },
-        { expiresIn: process.env.JWT_EXPIRES_IN || '15m' },
+        { expiresIn: process.env.JWT_EXPIRES_IN || '60m' },
       );
       const newRefreshToken = this.jwtService.sign(
         { user_id: decoded.user_id, mail: decoded.mail },
@@ -77,7 +77,7 @@ export class AuthService {
 
       // Redis에 새로운 토큰 저장
       const redisAccessKey = `auth:access_token:${decoded.user_id}`;
-      await this.redisService.set(redisAccessKey, newAccessToken, 900); // 15분
+      await this.redisService.set(redisAccessKey, newAccessToken, 3600); // 60분
 
       await this.redisService.set(redisRefreshKey, newRefreshToken, 604800); // 7일
 
