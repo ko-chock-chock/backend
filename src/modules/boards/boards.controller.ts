@@ -38,6 +38,7 @@ import { Request } from 'express';
 export class BoardsController {
   constructor(private readonly boardsService: BoardsService) {}
 
+  // 게시글 생성
   @ApiOperation({ summary: '게시글 생성', description: '새로운 게시글을 생성합니다.' })
   @ApiResponse({
     status: 201,
@@ -53,7 +54,6 @@ export class BoardsController {
     @UploadedFiles() files: Express.Multer.File[],
     @Req() request: Request,
   ) {
-    // 디버깅 로그 추가
     console.log('Received Files:', files);
 
     if (!files || files.length === 0) {
@@ -74,6 +74,7 @@ export class BoardsController {
     return { message: '게시글이 생성되었습니다.', data: newBoard };
   }
 
+  // 게시글 목록 조회
   @ApiOperation({ summary: '게시글 목록 조회', description: '모든 게시글 목록을 조회합니다.' })
   @ApiQuery({ name: 'page', description: '페이지 번호 (기본값: 1)', required: false, example: 1 })
   @ApiResponse({
@@ -90,7 +91,13 @@ export class BoardsController {
             price: 100000,
             location: '서울특별시 강남구',
             status: '구인중',
-            images: [{ image_id: 1, image_url: 'https://example.com/image1.jpg', is_thumbnail: true }],
+            created_date: '2025-01-04T12:00:00Z',
+            updated_date: '2025-01-04T12:00:00Z',
+            image_url: 'https://example.com/image1.jpg',
+            user: {
+              name: '작성자 이름',
+              profile_image: 'https://example.com/profile.jpg',
+            },
           },
         ],
       },
@@ -103,6 +110,7 @@ export class BoardsController {
     return { message: '게시글 목록 조회 성공', data: result };
   }
 
+  // 게시글 조회
   @ApiOperation({ summary: '게시글 조회', description: '특정 게시글을 ID로 조회합니다.' })
   @ApiParam({ name: 'boardId', description: '조회할 게시글 ID', example: 1 })
   @ApiResponse({
@@ -118,6 +126,8 @@ export class BoardsController {
           price: 100000,
           location: '서울특별시 강남구',
           status: '구인중',
+          created_date: '2025-01-04T12:00:00Z',
+          updated_date: '2025-01-04T12:00:00Z',
           images: [
             {
               image_id: 1,
@@ -125,6 +135,10 @@ export class BoardsController {
               is_thumbnail: true,
             },
           ],
+          user: {
+            name: '작성자 이름',
+            profile_image: 'https://example.com/profile.jpg',
+          },
         },
       },
     },
@@ -138,6 +152,42 @@ export class BoardsController {
     };
   }
 
+  // 사용자가 작성한 게시글 조회
+  @ApiOperation({ summary: '사용자가 작성한 게시글 조회', description: 'user_id로 사용자가 작성한 게시글 조회' })
+  @ApiParam({ name: 'user_id', description: '사용자 ID', example: '550e8400-e29b-41d4-a716-446655440000' })
+  @ApiResponse({
+    status: 200,
+    description: '사용자가 작성한 게시글 조회 성공',
+    schema: {
+      example: {
+        message: '사용자가 작성한 게시글 조회 성공',
+        data: [
+          {
+            board_id: 1,
+            title: '게시글 제목',
+            contents: '게시글 내용',
+            price: 100000,
+            location: '서울특별시 강남구',
+            status: '구인중',
+            created_date: '2025-01-04T12:00:00Z',
+            updated_date: '2025-01-04T12:00:00Z',
+            image_url: 'https://example.com/image1.jpg',
+            user: {
+              name: '작성자 이름',
+              profile_image: 'https://example.com/profile.jpg',
+            },
+          },
+        ],
+      },
+    },
+  })
+  @Get('user/:user_id')
+  async getBoardsByUserId(@Param('user_id') user_id: string) {
+    const boards = await this.boardsService.getBoardsByUserId(user_id);
+    return { message: '사용자가 작성한 게시글 조회 성공', data: boards };
+  }
+
+  // 게시글 수정
   @ApiOperation({ summary: '게시글 수정', description: '특정 게시글을 수정합니다.' })
   @ApiParam({ name: 'boardId', description: '수정할 게시글 ID', example: 1 })
   @ApiConsumes('multipart/form-data') // Swagger에서 multipart/form-data 지원
@@ -155,6 +205,7 @@ export class BoardsController {
     return { message: '게시글이 수정되었습니다.', data: updatedBoard };
   }
 
+  // 게시글 삭제
   @ApiOperation({ summary: '게시글 삭제', description: '특정 게시글을 삭제합니다.' })
   @ApiParam({ name: 'boardId', description: '삭제할 게시글 ID', example: 1 })
   @ApiResponse({

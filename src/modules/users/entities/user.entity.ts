@@ -1,5 +1,6 @@
 import { Exclude } from 'class-transformer';
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Board } from 'src/modules/boards/entities/board.entity';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 
 @Entity('users') // TypeORM에서 해당 클래스가 데이터베이스 테이블과 매핑됨
 export class User {
@@ -18,4 +19,7 @@ export class User {
 
   @Column({ type: 'varchar', nullable: true })
   profile_image: string; // 프로필 이미지는 선택 입력 (현재는 기본값 처리 예정)
+
+  @OneToMany(() => Board, (board) => board.user_id) // 한 명의 유저는 여러 게시글을 작성
+  boards: Board[];
 }

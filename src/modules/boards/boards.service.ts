@@ -107,6 +107,7 @@ export class BoardsService {
         'image',
         'image.is_thumbnail = true', // 썸네일만 조인
       )
+      .leftJoinAndSelect('board.user', 'user') // 작성자 정보 포함
       .select([
         'board.board_id',
         'board.title',
@@ -117,6 +118,8 @@ export class BoardsService {
         'board.created_date',
         'board.updated_date',
         'image.image_url', // 썸네일 이미지 URL만 선택
+        'user.name', // 작성자 이름
+        'user.profile_image', // 작성자 프로필 이미지
       ])
       .skip(skip)
       .take(take)
@@ -128,7 +131,26 @@ export class BoardsService {
 
   // 특정 게시글 조회
   async getBoardById(board_id: number): Promise<Board> {
-    const board = await this.boardRepository.findOne({ where: { board_id }, relations: ['images'] }); // 이미지 연관 데이터 포함
+    const board = await this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoinAndSelect('board.images', 'image') // 모든 이미지 포함
+      .leftJoinAndSelect('board.user', 'user') // 작성자 정보 포함
+      .select([
+        'board.board_id',
+        'board.title',
+        'board.contents',
+        'board.price',
+        'board.location',
+        'board.status',
+        'board.created_date',
+        'board.updated_date',
+        'image.image_url',
+        'image.is_thumbnail',
+        'user.name',
+        'user.profile_image',
+      ])
+      .where('board.board_id = :board_id', { board_id })
+      .getOne();
     if (!board) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
@@ -140,6 +162,36 @@ export class BoardsService {
     const board = await this.getBoardById(board_id); // 기존 게시글 조회
     Object.assign(board, data); // 데이터 병합
     return await this.boardRepository.save(board); // 수정된 데이터 저장
+  }
+
+  // 사용자가 작성한 게시글 조회
+  async getBoardsByUserId(user_id: string): Promise<Board[]> {
+    const boards = await this.boardRepository
+      .createQueryBuilder('board')
+      .leftJoinAndSelect('board.images', 'image', 'image.is_thumbnail = true') // 썸네일만 포함
+      .leftJoinAndSelect('board.user', 'user') // 작성자 정보 포함
+      .select([
+        'board.board_id',
+        'board.title',
+        'board.contents',
+        'board.price',
+        'board.location',
+        'board.status',
+        'board.created_date',
+        'board.updated_date',
+        'image.image_url', // 썸네일 URL
+        'user.name', // 작성자 이름
+        'user.profile_image', // 작성자 프로필 이미지
+      ])
+      .where('board.user_id = :user_id', { user_id })
+      .orderBy('board.created_date', 'DESC')
+      .getMany();
+
+    if (!boards || boards.length === 0) {
+      throw new NotFoundException('해당 사용자가 작성한 게시글을 찾을 수 없습니다.');
+    }
+
+    return boards;
   }
 
   // 게시글 삭제
