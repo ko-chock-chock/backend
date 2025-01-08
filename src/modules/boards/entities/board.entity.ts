@@ -6,10 +6,13 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { BoardImage } from './board-image.entity';
 import { Expose } from 'class-transformer';
+import { User } from 'src/modules/users/entities/user.entity';
 
 @Entity('boards')
 export class Board {
@@ -75,4 +78,8 @@ export class Board {
     const thumbnailImage = this.images?.find((image) => image.is_thumbnail);
     return thumbnailImage ? thumbnailImage.image_url : null;
   }
+
+  @ManyToOne(() => User, (user) => user.boards, { onDelete: 'CASCADE' }) // 유저와 게시글의 다대일 관계
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 }
