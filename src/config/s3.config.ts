@@ -1,26 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { S3Client, PutObjectCommand, PutObjectCommandInput } from '@aws-sdk/client-s3';
+import { S3Client } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class S3ConfigService {
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
+  private readonly region: string;
 
   constructor(private readonly configService: ConfigService) {
+    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
+    this.region = this.configService.get<string>('AWS_REGION');
+
+    if (!this.bucketName) {
+      throw new Error('S3 Bucket Name is not defined in environment variables.');
+    }
+
+    if (!this.region) {
+      throw new Error('AWS Region is not defined in environment variables.');
+    }
+
     this.s3Client = new S3Client({
       credentials: {
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
         secretAccessKey: this.configService.get<string>('AWS_SECRET_ACCESS_KEY'),
       },
-      region: this.configService.get<string>('AWS_REGION'),
+      region: this.region,
     });
 
-    this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
-
-    if (!this.bucketName) {
-      throw new Error('S3 Bucket Name is not defined in environment variables.');
-    }
+    // 디버깅 로그
+    console.log('S3ConfigService Initialized:');
+    console.log('Bucket Name:', this.bucketName);
+    console.log('Region:', this.region);
   }
 
   getS3Client(): S3Client {
@@ -31,22 +42,7 @@ export class S3ConfigService {
     return this.bucketName;
   }
 
-  async uploadFile(file: Express.Multer.File): Promise<string> {
-    const key = `uploads/${Date.now()}-${file.originalname}`;
-
-    const params: PutObjectCommandInput = {
-      Bucket: this.bucketName,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    };
-
-    try {
-      await this.s3Client.send(new PutObjectCommand(params));
-      return `https://${this.bucketName}.s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${key}`;
-    } catch (error) {
-      console.error('S3 upload error', error);
-      throw new Error('File upload failed');
-    }
+  getRegion(): string {
+    return this.region;
   }
 }
