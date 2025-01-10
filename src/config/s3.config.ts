@@ -9,17 +9,29 @@ export class S3ConfigService {
   private readonly region: string;
 
   constructor(private readonly configService: ConfigService) {
+    // 우선순위 1: .env에서 직접 가져오기
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
     this.region = this.configService.get<string>('AWS_REGION');
 
-    if (!this.bucketName) {
-      throw new Error('S3 Bucket Name is not defined in environment variables.');
+    // 만약 환경변수에서 region을 못 가져왔거나 문자열이 아닌 경우, fallback
+    if (!this.region || this.region.trim() === '') {
+      // fallback 예시: ap-northeast-2
+      console.warn('[S3ConfigService] AWS_REGION이 유효하지 않아, "ap-northeast-2"로 fallback합니다.');
+      this.region = 'ap-northeast-2'; // 원하는 기본값
     }
 
-    if (!this.region) {
-      throw new Error('AWS Region is not defined in environment variables.');
+    if (!this.bucketName || this.bucketName.trim() === '') {
+      throw new Error('[S3ConfigService] S3 Bucket Name이 .env에 설정되지 않았습니다.');
     }
 
+    // region 값이 혹시 'function' 같은 문자열을 포함하는지 마지막으로 방어
+    if (this.region.includes('function') || this.region.includes('=>')) {
+      throw new Error(
+        `[S3ConfigService] region 값이 이상합니다: ${this.region}. \n.env나 환경 변수를 다시 확인하세요.`,
+      );
+    }
+
+    // AWS SDK 클라이언트 생성
     this.s3Client = new S3Client({
       credentials: {
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),

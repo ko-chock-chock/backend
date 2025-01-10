@@ -18,7 +18,7 @@ export class S3Service {
 
   async uploadFiles(files: Express.Multer.File[]): Promise<string[]> {
     if (!files || files.length === 0) {
-      throw new Error('No files provided for upload.');
+      throw new Error('[S3Service] 업로드할 파일이 없습니다.');
     }
 
     console.log(
@@ -31,6 +31,7 @@ export class S3Service {
   }
 
   async uploadFile(file: Express.Multer.File): Promise<string> {
+    // 파일명에 포함된 한글/특수문자 등을 '_'로 치환
     const sanitizedFileName = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
     const key = `uploads/${Date.now()}-${uuid()}-${sanitizedFileName}`;
 
@@ -50,9 +51,10 @@ export class S3Service {
 
       await this.s3Client.send(new PutObjectCommand(params));
 
-      console.log('Type of region:', typeof this.region);
-      console.log('Value of region:', this.region);
+      console.log('[S3Service] Type of region:', typeof this.region);
+      console.log('[S3Service] Value of region:', this.region);
 
+      // key가 URL에 안전하게 들어가도록 encodeURIComponent 적용
       const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${encodeURIComponent(key)}`;
 
       console.log('[S3Service] File successfully uploaded. URL:', fileUrl);
