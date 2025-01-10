@@ -11,9 +11,9 @@ export class S3Service {
 
   constructor(private readonly s3ConfigService: S3ConfigService) {
     // 디버깅 로그
-    console.log('S3Service Initialized:');
-    console.log('Bucket Name:', this.bucketName);
-    console.log('Region:', this.region);
+    console.log('[S3Service] Initialized:');
+    console.log('  Bucket Name:', this.bucketName);
+    console.log('  Region:', this.region);
   }
 
   async uploadFiles(files: Express.Multer.File[]): Promise<string[]> {
@@ -22,7 +22,7 @@ export class S3Service {
     }
 
     console.log(
-      'Files received for upload:',
+      '[S3Service] Files received for upload:',
       files.map((file) => file.originalname),
     );
 
@@ -34,9 +34,9 @@ export class S3Service {
     const sanitizedFileName = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_');
     const key = `uploads/${Date.now()}-${uuid()}-${sanitizedFileName}`;
 
-    console.log('Preparing to upload file:');
-    console.log('Original File Name:', file.originalname);
-    console.log('Sanitized Key:', key);
+    console.log('[S3Service] Preparing to upload file:');
+    console.log('  Original File Name:', file.originalname);
+    console.log('  Sanitized Key:', key);
 
     const params = {
       Bucket: this.bucketName,
@@ -46,16 +46,16 @@ export class S3Service {
     };
 
     try {
-      console.log('Uploading file to S3 with key:', key);
+      console.log('[S3Service] Uploading file to S3 with key:', key);
 
       await this.s3Client.send(new PutObjectCommand(params));
 
-      const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${key}`;
+      const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${encodeURIComponent(key)}`;
 
-      console.log('File successfully uploaded. URL:', fileUrl);
+      console.log('[S3Service] File successfully uploaded. URL:', fileUrl);
       return fileUrl;
     } catch (error) {
-      console.error('S3 upload error:', error.message);
+      console.error('[S3Service] S3 upload error:', error.message);
       throw new InternalServerErrorException('File upload failed');
     }
   }

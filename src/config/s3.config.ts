@@ -29,9 +29,9 @@ export class S3ConfigService {
     });
 
     // 디버깅 로그
-    console.log('S3ConfigService Initialized:');
-    console.log('Bucket Name:', this.bucketName);
-    console.log('Region:', this.region);
+    console.log('[S3ConfigService] Initialized:');
+    console.log('  Bucket Name:', this.bucketName);
+    console.log('  Region:', this.region);
   }
 
   getS3Client(): S3Client {
