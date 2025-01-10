@@ -50,6 +50,9 @@ export class S3Service {
 
       await this.s3Client.send(new PutObjectCommand(params));
 
+      console.log('Type of region:', typeof this.region);
+      console.log('Value of region:', this.region);
+
       const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${encodeURIComponent(key)}`;
 
       console.log('[S3Service] File successfully uploaded. URL:', fileUrl);
