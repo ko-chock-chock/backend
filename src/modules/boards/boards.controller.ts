@@ -16,13 +16,13 @@ import {
 } from '@nestjs/common';
 import {
   ApiTags,
-  ApiOperation,
   ApiResponse,
   ApiQuery,
   ApiParam,
   ApiBody,
   ApiBearerAuth,
   ApiConsumes,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { BoardsService } from './boards.service';
 import { CreateBoardDto } from './dto/create-board.dto';
@@ -200,8 +200,12 @@ export class BoardsController {
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':boardId/edit')
-  async updateBoard(@Param('boardId') board_id: number, @Body() updateBoardDto: Partial<UpdateBoardDto>) {
-    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto);
+  async updateBoard(
+    @Param('boardId') board_id: number,
+    @Body() updateBoardDto: Partial<UpdateBoardDto>,
+    @Req() request: Request, // 수정 시 유저 검증
+  ) {
+    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto, request.user.user_id);
     return { message: '게시글이 수정되었습니다.', data: updatedBoard };
   }
 
