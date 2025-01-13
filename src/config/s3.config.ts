@@ -11,7 +11,7 @@ export class S3ConfigService {
   constructor(private readonly configService: ConfigService) {
     // 우선순위 1: .env에서 직접 가져오기
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
-    this.region = this.configService.get<string>('AWS_REGION');
+    this.region = 'ap-northeast-2';
 
     // 만약 환경변수에서 region을 못 가져왔거나 문자열이 아닌 경우, fallback
     if (!this.region || this.region.trim() === '') {
