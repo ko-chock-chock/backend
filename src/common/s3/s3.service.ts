@@ -7,13 +7,12 @@ import { v4 as uuid } from 'uuid';
 export class S3Service {
   private readonly s3Client = this.s3ConfigService.getS3Client();
   private readonly bucketName = this.s3ConfigService.getBucketName();
-  private readonly region = this.s3ConfigService.getRegion();
+  private readonly region = 'ap-northeast-2';
 
   constructor(private readonly s3ConfigService: S3ConfigService) {
     // 디버깅 로그
     console.log('[S3Service] Initialized:');
     console.log('  Bucket Name:', this.bucketName);
-    console.log('  Region:', this.region);
   }
 
   async uploadFiles(files: Express.Multer.File[]): Promise<string[]> {
@@ -50,9 +49,6 @@ export class S3Service {
       console.log('[S3Service] Uploading file to S3 with key:', key);
 
       await this.s3Client.send(new PutObjectCommand(params));
-
-      console.log('[S3Service] Type of region:', typeof this.region);
-      console.log('[S3Service] Value of region:', this.region);
 
       // key가 URL에 안전하게 들어가도록 encodeURIComponent 적용
       const fileUrl = `https://${this.bucketName}.s3.ap-northeast-2.amazonaws.com/${encodeURIComponent(key)}`;
