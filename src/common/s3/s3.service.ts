@@ -55,7 +55,7 @@ export class S3Service {
       console.log('[S3Service] Value of region:', this.region);
 
       // key가 URL에 안전하게 들어가도록 encodeURIComponent 적용
-      const fileUrl = `https://${this.bucketName}.s3.${this.region}.amazonaws.com/${encodeURIComponent(key)}`;
+      const fileUrl = `https://${this.bucketName}.s3.ap-northeast-2.amazonaws.com/${encodeURIComponent(key)}`;
 
       console.log('[S3Service] File successfully uploaded. URL:', fileUrl);
       return fileUrl;
