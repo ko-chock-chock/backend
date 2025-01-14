@@ -10,6 +10,10 @@ export class S3ConfigService {
 
   constructor(private readonly configService: ConfigService) {
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
+    this.region = this.configService.get<string>('AWS_REGION');
+
+    console.log('[DEBUG] region from process.env:', this.region);
+    console.log('[DEBUG] typeof region:', typeof this.region);
 
     if (!this.bucketName || this.bucketName.trim() === '') {
       throw new Error('[S3ConfigService] S3 Bucket Name이 .env에 설정되지 않았습니다.');
