@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Board } from './entities/board.entity';
@@ -119,6 +119,7 @@ export class BoardsService {
         'board.updated_date',
         'image.image_url', // 썸네일 이미지 URL만 선택
         'user.name', // 작성자 이름
+        'user.user_id',
         'user.profile_image', // 작성자 프로필 이미지
       ])
       .skip(skip)
@@ -147,6 +148,7 @@ export class BoardsService {
         'image.image_url',
         'image.is_thumbnail',
         'user.name',
+        'user.user_id',
         'user.profile_image',
       ])
       .where('board.board_id = :board_id', { board_id })
@@ -158,10 +160,24 @@ export class BoardsService {
   }
 
   // 게시글 수정
-  async updateBoard(board_id: number, data: Partial<Board>): Promise<Board> {
-    const board = await this.getBoardById(board_id); // 기존 게시글 조회
-    Object.assign(board, data); // 데이터 병합
-    return await this.boardRepository.save(board); // 수정된 데이터 저장
+  async updateBoard(board_id: number, data: Partial<Board>, user_id: string): Promise<Board> {
+    // 1. 기존 게시글 조회
+    const board = await this.getBoardById(board_id);
+
+    // 2. 게시글이 존재하는지 확인 (getBoardById에서 이미 검사하지만, 혹시 모를 상황 대비)
+    if (!board) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    // 3. 작성자와 요청자가 동일한지 확인
+    if (board.user_id !== user_id) {
+      // 작성자가 아닌 경우
+      throw new ForbiddenException('게시글 수정 권한이 없습니다.');
+    }
+
+    // 4. 실제 수정 로직
+    Object.assign(board, data);
+    return await this.boardRepository.save(board);
   }
 
   // 사용자가 작성한 게시글 조회
@@ -180,6 +196,7 @@ export class BoardsService {
         'board.created_date',
         'board.updated_date',
         'image.image_url', // 썸네일 URL
+        'user.user_id',
         'user.name', // 작성자 이름
         'user.profile_image', // 작성자 프로필 이미지
       ])
