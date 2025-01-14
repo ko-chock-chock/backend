@@ -10,10 +10,11 @@ export class S3ConfigService {
 
   constructor(private readonly configService: ConfigService) {
     this.bucketName = this.configService.get<string>('AWS_S3_BUCKET_NAME');
-    this.region = this.configService.get<string>('AWS_REGION');
+    // this.region = this.configService.get<string>('AWS_REGION');
+    const region = 'ap-northeast-2';
 
-    console.log('[DEBUG] region from process.env:', this.region);
-    console.log('[DEBUG] typeof region:', typeof this.region);
+    // console.log('[DEBUG] region from process.env:', this.region);
+    // console.log('[DEBUG] typeof region:', typeof this.region);
 
     if (!this.bucketName || this.bucketName.trim() === '') {
       throw new Error('[S3ConfigService] S3 Bucket Name이 .env에 설정되지 않았습니다.');
@@ -30,7 +31,7 @@ export class S3ConfigService {
 
     /// S3Client 생성
     this.s3Client = new S3Client({
-      region: 'ap-northeast-2', // 직접 하드코딩
+      region: region,
       credentials: {
         accessKeyId: accessKeyId,
         secretAccessKey: secretAccessKey,
@@ -51,6 +52,6 @@ export class S3ConfigService {
   }
 
   getRegion(): string {
-    return this.region;
+    return 'ap-northeast-2';
   }
 }
