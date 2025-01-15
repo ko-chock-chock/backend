@@ -6,10 +6,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: [
-      'https://kochokchok.shop', // 배포된 프론트엔드 주소
-      'http://localhost:3000', // 로컬 개발 환경
-    ],
+    // origin: [
+    //   'https://kochokchok.shop', // 배포된 프론트엔드 주소
+    //   'http://localhost:3000', // 로컬 개발 환경
+    // ],
+    origin: '*',
     credentials: true, // 쿠키 전송 허용
     methods: ['GET', 'POST', 'PATCH', 'DELETE'], // 허용할 메서드
     allowedHeaders: ['Content-Type', 'Authorization'], // 허용할 헤더
