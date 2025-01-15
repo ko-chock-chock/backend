@@ -202,10 +202,13 @@ export class BoardsController {
   @Patch(':boardId/edit')
   async updateBoard(
     @Param('boardId') board_id: number,
-    @Body() updateBoardDto: Partial<UpdateBoardDto>,
+    @Body() updateBoardDto: UpdateBoardDto,
     @Req() request: Request, // 수정 시 유저 검증
   ) {
-    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto, request.user.user_id);
+    // 여기서 request.user.user_id → 현재 접속 중인 유저의 user_id (토큰에서 추출)
+    const currentUserId = request.user.user_id;
+
+    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto, currentUserId);
     return { message: '게시글이 수정되었습니다.', data: updatedBoard };
   }
 
