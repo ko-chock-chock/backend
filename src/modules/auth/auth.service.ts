@@ -114,7 +114,7 @@ export class AuthService {
   async getUserIdFromAccessToken(token: string): Promise<string> {
     try {
       const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-      return payload.user_id;
+      return payload.sub;
     } catch (error) {
       throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
     }

@@ -1,4 +1,16 @@
-import { Controller, Post, Body, Delete, Param, HttpException, HttpStatus, Patch, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Delete,
+  Param,
+  HttpException,
+  HttpStatus,
+  Patch,
+  Get,
+  UseInterceptors,
+  ClassSerializerInterceptor,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { UserService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -6,6 +18,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('User')
+@UseInterceptors(ClassSerializerInterceptor) // class-transformer 적용
 @Controller('api/v1/user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
