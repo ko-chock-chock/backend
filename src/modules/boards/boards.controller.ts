@@ -13,6 +13,7 @@ import {
   Req,
   BadRequestException,
   ClassSerializerInterceptor,
+  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -205,10 +206,15 @@ export class BoardsController {
     @Body() updateBoardDto: UpdateBoardDto,
     @Req() request: Request, // 수정 시 유저 검증
   ) {
-    // 여기서 request.user.user_id → 현재 접속 중인 유저의 user_id (토큰에서 추출)
-    const currentUserId = request.user.user_id;
+    console.log('Current User ID:', request.user?.user_id); // 확인
+    const currentUserId = request.user?.user_id;
+
+    if (!currentUserId) {
+      throw new UnauthorizedException('현재 유저 정보를 가져올 수 없습니다.');
+    }
 
     const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto, currentUserId);
+
     return { message: '게시글이 수정되었습니다.', data: updatedBoard };
   }
 

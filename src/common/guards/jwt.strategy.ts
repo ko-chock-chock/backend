@@ -11,6 +11,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    return { userId: payload.sub, username: payload.username };
+    return {
+      user_id: payload.sub, // user_id로 매핑 (request.user.user_id에 저장됨)
+      username: payload.username,
+    };
   }
 }
