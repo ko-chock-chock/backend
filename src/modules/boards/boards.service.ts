@@ -162,18 +162,42 @@ export class BoardsService {
   }
 
   // 게시글 수정
-  async updateBoard(board_id: number, data: Partial<Board>): Promise<Board> {
-    // 1. 기존 게시글 조회
-    const board = await this.getBoardById(board_id);
+  async updateBoard(board_id: number, data: Partial<Board>, files?: Express.Multer.File[]): Promise<Board> {
+    const board = await this.getBoardById(board_id); // 기존 게시글 조회
 
-    // 2. 게시글이 존재하는지 확인 (getBoardById에서 이미 검사하지만, 혹시 모를 상황 대비)
     if (!board) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
 
-    // 4. 실제 수정 로직
+    // 데이터 업데이트
     Object.assign(board, data);
-    return await this.boardRepository.save(board);
+
+    if (files && files.length > 0) {
+      // 1. 기존 이미지 삭제
+      await this.boardImageRepository.delete({ board: { board_id } });
+
+      // 2. 새 이미지 업로드
+      try {
+        const uploadedUrls = await this.s3Service.uploadFiles(files); // S3에 파일 업로드
+
+        // 3. 업로드된 이미지 데이터 생성
+        const newImages = uploadedUrls.map((url, index) =>
+          this.boardImageRepository.create({
+            image_url: url,
+            is_thumbnail: index === 0, // 첫 번째 이미지를 썸네일로 설정
+            board: board,
+          }),
+        );
+
+        // 4. 이미지 저장
+        await this.boardImageRepository.save(newImages);
+      } catch (error) {
+        console.log(error);
+        throw new InternalServerErrorException('이미지 업로드 중 문제가 발생했습니다.');
+      }
+    }
+
+    return await this.boardRepository.save(board); // 게시글 저장
   }
 
   // 사용자가 작성한 게시글 조회
