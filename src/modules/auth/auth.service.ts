@@ -83,6 +83,7 @@ export class AuthService {
 
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException('Refresh Token 검증에 실패했습니다.');
     }
   }
@@ -116,6 +117,7 @@ export class AuthService {
       const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
       return payload.sub;
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
     }
   }

@@ -45,16 +45,18 @@ export class BoardsService {
 
       // 요청에서 user_id 추출
       const userId = request.user?.user_id;
+      data.user_id = userId;
+
       if (!userId) {
         throw new InternalServerErrorException('user_id가 누락되었습니다.');
       }
-      data.user_id = userId; // user_id 추가
 
       // 게시글 엔티티 생성 및 저장
       console.log('Creating board entity...');
       const board = this.boardRepository.create(data);
       const savedBoard = await queryRunner.manager.save(board);
-      console.log('Board saved:', savedBoard);
+      // savedBoard.user_id가 잘 들어갔는지 확인 로그
+      console.log('Saved Board user_id:', savedBoard.user_id);
 
       // 이미지 업로드 처리 및 저장
       let imageUrls: string[] = [];

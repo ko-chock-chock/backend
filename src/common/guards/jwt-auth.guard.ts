@@ -46,8 +46,9 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
       }
 
+      // 여기서 request.user에 user_id 필드 추가
       request.user = {
-        user_id: payload.sub, // user_id를 올바르게 설정
+        user_id: payload.sub, // sub를 user_id로 매핑
       };
 
       console.log('Request User:', request.user); // 확인
