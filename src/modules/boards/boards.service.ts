@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Board } from './entities/board.entity';
@@ -162,19 +162,13 @@ export class BoardsService {
   }
 
   // 게시글 수정
-  async updateBoard(board_id: number, data: Partial<Board>, user_id: string): Promise<Board> {
+  async updateBoard(board_id: number, data: Partial<Board>): Promise<Board> {
     // 1. 기존 게시글 조회
     const board = await this.getBoardById(board_id);
 
     // 2. 게시글이 존재하는지 확인 (getBoardById에서 이미 검사하지만, 혹시 모를 상황 대비)
     if (!board) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
-    }
-
-    // 3. 작성자와 요청자가 동일한지 확인
-    if (board.user_id !== user_id) {
-      // 작성자가 아닌 경우
-      throw new ForbiddenException('게시글 수정 권한이 없습니다.');
     }
 
     // 4. 실제 수정 로직

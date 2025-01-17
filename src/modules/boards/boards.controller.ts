@@ -13,7 +13,6 @@ import {
   Req,
   BadRequestException,
   ClassSerializerInterceptor,
-  UnauthorizedException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -201,19 +200,8 @@ export class BoardsController {
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':boardId/edit')
-  async updateBoard(
-    @Param('boardId') board_id: number,
-    @Body() updateBoardDto: UpdateBoardDto,
-    @Req() request: Request, // 수정 시 유저 검증
-  ) {
-    console.log('Current User ID:', request.user?.user_id); // 확인
-    const currentUserId = request.user?.user_id;
-
-    if (!currentUserId) {
-      throw new UnauthorizedException('현재 유저 정보를 가져올 수 없습니다.');
-    }
-
-    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto, currentUserId);
+  async updateBoard(@Param('boardId') board_id: number, @Body() updateBoardDto: UpdateBoardDto) {
+    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto);
 
     return { message: '게시글이 수정되었습니다.', data: updatedBoard };
   }
