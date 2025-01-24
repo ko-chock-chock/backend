@@ -31,7 +31,7 @@ export class AuthService {
       throw new UnauthorizedException('이메일 또는 비밀번호가 잘못되었습니다.');
     }
 
-    const payload = { user_id: user.user_id, mail: user.mail };
+    const payload = { sub: user.user_id, mail: user.mail };
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: process.env.JWT_EXPIRES_IN || '60m',
     });
@@ -83,6 +83,7 @@ export class AuthService {
 
       return { accessToken: newAccessToken, refreshToken: newRefreshToken };
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException('Refresh Token 검증에 실패했습니다.');
     }
   }
@@ -114,8 +115,9 @@ export class AuthService {
   async getUserIdFromAccessToken(token: string): Promise<string> {
     try {
       const payload = this.jwtService.verify(token, { secret: process.env.JWT_SECRET });
-      return payload.user_id;
+      return payload.sub;
     } catch (error) {
+      console.log(error);
       throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
     }
   }

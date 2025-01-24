@@ -34,9 +34,9 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const payload = this.jwtService.verify(token, { secret: 'ko_chock_chock_jwt' });
-      console.log('Decoded JWT Payload:', payload);
+      console.log('Decoded JWT Payload:', payload); // 확인
 
-      const redisKey = `access_token:${payload.user_id}`;
+      const redisKey = `access_token:${payload.sub}`; // payload.sub 확인
       const storedToken = await this.redisService.get(redisKey);
 
       console.log('Redis Key:', redisKey);
@@ -46,7 +46,12 @@ export class JwtAuthGuard implements CanActivate {
         throw new UnauthorizedException('유효하지 않은 Access Token입니다.');
       }
 
-      request.user = payload;
+      // 여기서 request.user에 user_id 필드 추가
+      request.user = {
+        user_id: payload.sub, // sub를 user_id로 매핑
+      };
+
+      console.log('Request User:', request.user); // 확인
     } catch (error) {
       console.error('JWT Verification or Redis Error:', error.message);
       throw new UnauthorizedException('유효하지 않은 Access Token입니다.');

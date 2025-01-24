@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Board } from './entities/board.entity';
@@ -45,16 +45,18 @@ export class BoardsService {
 
       // 요청에서 user_id 추출
       const userId = request.user?.user_id;
+      data.user_id = userId;
+
       if (!userId) {
         throw new InternalServerErrorException('user_id가 누락되었습니다.');
       }
-      data.user_id = userId; // user_id 추가
 
       // 게시글 엔티티 생성 및 저장
       console.log('Creating board entity...');
       const board = this.boardRepository.create(data);
       const savedBoard = await queryRunner.manager.save(board);
-      console.log('Board saved:', savedBoard);
+      // savedBoard.user_id가 잘 들어갔는지 확인 로그
+      console.log('Saved Board user_id:', savedBoard.user_id);
 
       // 이미지 업로드 처리 및 저장
       let imageUrls: string[] = [];
@@ -160,24 +162,42 @@ export class BoardsService {
   }
 
   // 게시글 수정
-  async updateBoard(board_id: number, data: Partial<Board>, user_id: string): Promise<Board> {
-    // 1. 기존 게시글 조회
-    const board = await this.getBoardById(board_id);
+  async updateBoard(board_id: number, data: Partial<Board>, files?: Express.Multer.File[]): Promise<Board> {
+    const board = await this.getBoardById(board_id); // 기존 게시글 조회
 
-    // 2. 게시글이 존재하는지 확인 (getBoardById에서 이미 검사하지만, 혹시 모를 상황 대비)
     if (!board) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
 
-    // 3. 작성자와 요청자가 동일한지 확인
-    if (board.user_id !== user_id) {
-      // 작성자가 아닌 경우
-      throw new ForbiddenException('게시글 수정 권한이 없습니다.');
+    // 데이터 업데이트
+    Object.assign(board, data);
+
+    if (files && files.length > 0) {
+      // 1. 기존 이미지 삭제
+      await this.boardImageRepository.delete({ board: { board_id } });
+
+      // 2. 새 이미지 업로드
+      try {
+        const uploadedUrls = await this.s3Service.uploadFiles(files); // S3에 파일 업로드
+
+        // 3. 업로드된 이미지 데이터 생성
+        const newImages = uploadedUrls.map((url, index) =>
+          this.boardImageRepository.create({
+            image_url: url,
+            is_thumbnail: index === 0, // 첫 번째 이미지를 썸네일로 설정
+            board: board,
+          }),
+        );
+
+        // 4. 이미지 저장
+        await this.boardImageRepository.save(newImages);
+      } catch (error) {
+        console.log(error);
+        throw new InternalServerErrorException('이미지 업로드 중 문제가 발생했습니다.');
+      }
     }
 
-    // 4. 실제 수정 로직
-    Object.assign(board, data);
-    return await this.boardRepository.save(board);
+    return await this.boardRepository.save(board); // 게시글 저장
   }
 
   // 사용자가 작성한 게시글 조회

@@ -200,12 +200,15 @@ export class BoardsController {
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':boardId/edit')
+  @ApiConsumes('multipart/form-data') // Swagger에서 multipart/form-data 지원
+  @UseInterceptors(FilesInterceptor('files')) // 다중 파일 업로드 처리
   async updateBoard(
     @Param('boardId') board_id: number,
-    @Body() updateBoardDto: Partial<UpdateBoardDto>,
-    @Req() request: Request, // 수정 시 유저 검증
+    @Body() updateBoardDto: UpdateBoardDto,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto, request.user.user_id);
+    const updatedBoard = await this.boardsService.updateBoard(board_id, updateBoardDto, files);
+
     return { message: '게시글이 수정되었습니다.', data: updatedBoard };
   }
 
